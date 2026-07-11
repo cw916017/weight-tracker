@@ -217,6 +217,16 @@
             margin: 2px;
         }
 
+        /* 手動補救區樣式 */
+        .manual-fix-box {
+            background: #fdf6f0;
+            border: 1px dashed #d9b496;
+            padding: 10px;
+            border-radius: 8px;
+            margin-top: 10px;
+            display: none;
+        }
+
         /* 懸浮按鈕與彈窗 */
         .fab {
             position: fixed;
@@ -323,16 +333,26 @@
             <span style="position: absolute; right: 15px; top: 12px; font-weight: 500;">kg</span>
         </div>
 
-        <label for="todayFood">🥪 今日飲食日記 (輸入關鍵字自動算熱量)：</label>
-        <input type="text" id="todayFood" placeholder="試試輸入：中午吃白飯和雞胸肉，晚上吃水煮蛋">
+        <label for="todayFood">🥪 今日飲食日記 (自動識別台灣常見美食)：</label>
+        <input type="text" id="todayFood" placeholder="試試輸入：中午吃雞排，晚上吃滷肉飯配茶葉蛋">
 
         <!-- 實時熱量偵測預覽區 -->
         <div class="live-calorie-preview">
             <p style="margin: 0 0 5px 0; font-weight: 700; color: #8c7462;">🔍 智慧熱量偵測中：</p>
             <div id="detectedBadges" style="margin-bottom: 5px;"></div>
+
             <p style="margin: 5px 0 0 0;">預估今日攝取總熱量：<strong id="previewCalorieText"
                     style="color: #b88e6f; font-size: 18px;">0</strong> 大卡</p>
             <p id="tdeeCompareText" style="font-size: 12px; color: #a69285; margin: 3px 0 0 0;"></p>
+
+            <!-- 💡 核心優化：現場手動追加補救功能 -->
+            <div id="manualFixBlock" class="manual-fix-box">
+                <span style="font-size:12px; color:#a37b5d; font-weight:700;">💡 偵測到未匹配的食物？在此手動補上熱量：</span>
+                <div style="display:flex; gap: 8px; margin-top:5px;">
+                    <input type="number" id="manualCalorieInput" placeholder="手動追加熱量(卡)"
+                        style="margin-bottom:0; padding:8px; font-size:13px;">
+                </div>
+            </div>
         </div>
 
         <button id="saveBtn" class="primary-btn">💾 存下今日體重與熱量</button>
@@ -398,33 +418,37 @@
 
     <script>
         let myChart = null;
-        let currentCalculatedCalorie = 0;
+        let baseDetectedCalorie = 0;
+        let manualAddedCalorie = 0;
 
-        // 🎯 免費精確食物關鍵字字典 (老闆隨時可以自己增加！)
+        // 🎯 台灣常見爆量美食字典大升級！
         const calorieDictionary = [
+            { keywords: ["雞排", "炸雞排"], calorie: 650, label: "炸雞排(一片) 650卡" },
+            { keywords: ["滷肉飯", "魯肉飯"], calorie: 450, label: "滷肉飯(一碗) 450卡" },
+            { keywords: ["牛肉麵"], calorie: 800, label: "牛肉麵(一碗) 800卡" },
             { keywords: ["白飯", "米飯", "飯"], calorie: 260, label: "白飯(一碗) 260卡" },
             { keywords: ["雞胸肉", "雞胸"], calorie: 165, label: "雞胸肉(一份) 165卡" },
             { keywords: ["水煮蛋", "茶葉蛋", "雞蛋", "蛋"], calorie: 74, label: "雞蛋(一顆) 74卡" },
-            { keywords: ["地瓜", "紅薯"], calorie: 120, label: "地瓜(一條) 120卡" },
+            { keywords: ["地瓜"], calorie: 120, label: "地瓜(一條) 120卡" },
             { keywords: ["牛肉", "牛排"], calorie: 250, label: "牛排(100g) 250卡" },
             { keywords: ["青菜", "蔬菜", "花椰菜"], calorie: 45, label: "燙青菜(一盤) 45卡" },
             { keywords: ["豆漿"], calorie: 110, label: "無糖豆漿(一杯) 110卡" },
-            { keywords: ["奶茶", "拿鐵", "飲料"], calorie: 250, label: "含糖飲料(一杯) 250卡" },
-            { keywords: ["火鍋"], calorie: 800, label: "火鍋(一頓) 800卡" },
+            { keywords: ["奶茶", "飲料", "手搖飲"], calorie: 300, label: "手搖飲料(一杯) 300卡" },
             { keywords: ["便當"], calorie: 750, label: "排骨/雞腿便當 750卡" },
-            { keywords: ["蘋果"], calorie: 60, label: "蘋果(一顆) 60卡" },
-            { keywords: ["香蕉"], calorie: 90, label: "香蕉(一根) 90卡" }
+            { keywords: ["火鍋", "麻辣鍋"], calorie: 900, label: "火鍋(一頓) 900卡" },
+            { keywords: ["鹹酥雞", "鹽酥雞"], calorie: 550, label: "鹹酥雞(一份) 550卡" },
+            { keywords: ["地瓜球"], calorie: 200, label: "地瓜球(一小袋) 200卡" },
+            { keywords: ["水餃"], calorie: 40, label: "水餃(一顆) 40卡" },
+            { keywords: ["鍋貼"], calorie: 65, label: "鍋貼(一顆) 65卡" },
+            { keywords: ["小籠包"], calorie: 60, label: "小籠包(一顆) 60卡" }
         ];
 
         window.onload = function () {
             const savedTarget = localStorage.getItem('targetWeight');
             if (savedTarget) { document.getElementById('targetWeight').value = savedTarget; }
 
-            // 載入之前算好的 TDEE
             const savedTdee = localStorage.getItem('myTdeeValue');
-            if (savedTdee) {
-                document.getElementById('tdeeRes').innerText = savedTdee;
-            }
+            if (savedTdee) { document.getElementById('tdeeRes').innerText = savedTdee; }
 
             updateDashboard();
         };
@@ -433,30 +457,40 @@
         document.getElementById('todayFood').addEventListener('input', function () {
             const inputText = this.value;
             const badgesDiv = document.getElementById('detectedBadges');
+            const manualFixBlock = document.getElementById('manualFixBlock');
             badgesDiv.innerHTML = '';
 
             let totalCal = 0;
             let detectedItems = [];
 
-            // 掃描字典比對關鍵字
-            calorieDictionary.forEach(item => {
-                let matchCount = 0;
-                item.keywords.forEach(keyword => {
-                    // 計算該關鍵字在字串中出現的次數
-                    if (keyword && inputText.includes(keyword)) {
-                        const regex = new RegExp(keyword, 'g');
-                        const matches = inputText.match(regex);
-                        if (matches) matchCount = matches.length;
+            if (inputText.trim() !== "") {
+                // 顯示手動修正欄位給老闆自由發揮
+                manualFixBlock.style.display = 'block';
+
+                // 比對字典
+                calorieDictionary.forEach(item => {
+                    let matchCount = 0;
+                    item.keywords.forEach(keyword => {
+                        if (keyword && inputText.includes(keyword)) {
+                            // 計算出現次數
+                            const regex = new RegExp(keyword, 'g');
+                            const matches = inputText.match(regex);
+                            if (matches) matchCount = matches.length;
+                        }
+                    });
+
+                    if (matchCount > 0) {
+                        totalCal += (item.calorie * matchCount);
+                        detectedItems.push(`${item.label} x${matchCount}`);
                     }
                 });
+            } else {
+                manualFixBlock.style.display = 'none';
+                document.getElementById('manualCalorieInput').value = '';
+                manualAddedCalorie = 0;
+            }
 
-                if (matchCount > 0) {
-                    totalCal += (item.calorie * matchCount);
-                    detectedItems.push(`${item.label} x${matchCount}`);
-                }
-            });
-
-            currentCalculatedCalorie = totalCal;
+            baseDetectedCalorie = totalCal;
 
             // 渲染標籤
             detectedItems.forEach(itemLabel => {
@@ -467,38 +501,50 @@
             });
 
             if (detectedItems.length === 0 && inputText.trim() !== "") {
-                badgesDiv.innerHTML = `<span style="color:#a69285; font-size:12px;">(未偵測到內建關鍵字，將只儲存純文字)</span>`;
+                badgesDiv.innerHTML = `<span style="color:#a69285; font-size:12px;">(未偵測到內建食物，請在下方手動輸入熱量)</span>`;
             }
 
-            document.getElementById('previewCalorieText').innerText = totalCal;
+            calculateGrandTotal();
+        });
 
-            // 與 TDEE 對比提示
+        // 監聽手動追加的熱量數值
+        document.getElementById('manualCalorieInput').addEventListener('input', function () {
+            manualAddedCalorie = parseFloat(this.value) || 0;
+            calculateGrandTotal();
+        });
+
+        // 計算並顯示最終加總
+        function calculateGrandTotal() {
+            const finalTotal = baseDetectedCalorie + manualAddedCalorie;
+            document.getElementById('previewCalorieText').innerText = finalTotal;
+
+            // 與 TDEE 對比
             const tdeeVal = parseInt(document.getElementById('tdeeRes').innerText) || 0;
             if (tdeeVal > 0) {
-                const remain = tdeeVal - totalCal;
+                const remain = tdeeVal - finalTotal;
                 if (remain >= 0) {
                     document.getElementById('tdeeCompareText').innerHTML = `⚖️ 距離今日 TDEE 額度還剩 <strong style="color:#5cb85c;">${remain}</strong> 大卡`;
                 } else {
                     document.getElementById('tdeeCompareText').innerHTML = `⚠️ 已超出今日 TDEE 額度 <strong style="color:#d9534f;">${Math.abs(remain)}</strong> 大卡！`;
                 }
             }
-        });
+        }
 
         // 儲存今日資料
         document.getElementById('saveBtn').addEventListener('click', function () {
             const targetWeight = document.getElementById('targetWeight').value;
             const todayWeight = document.getElementById('todayWeight').value;
             const todayFood = document.getElementById('todayFood').value;
+            const finalTotal = baseDetectedCalorie + manualAddedCalorie;
 
             if (!todayWeight) { alert('老闆，記得填寫體重喔！'); return; }
 
             const todayDate = new Date().toLocaleDateString();
 
-            // 把算出來的熱量一起打包存進歷史紀錄裡！
             const dailyData = {
                 weight: parseFloat(todayWeight),
                 food: todayFood,
-                calories: currentCalculatedCalorie,
+                calories: finalTotal,
                 date: todayDate
             };
 
@@ -510,15 +556,18 @@
             else { historyLog.push(dailyData); }
 
             localStorage.setItem('weightHistoryLog', JSON.stringify(historyLog));
-            alert('🎉 成功鎖進保險箱！今日體重與熱量皆已完美存檔！');
+            alert('🎉 成功鎖進保險箱！今日飲食與總熱量皆已完美存檔！');
 
-            // 清空
+            // 重置所有欄位
             document.getElementById('todayWeight').value = '';
             document.getElementById('todayFood').value = '';
+            document.getElementById('manualCalorieInput').value = '';
             document.getElementById('detectedBadges').innerHTML = '';
             document.getElementById('previewCalorieText').innerText = '0';
             document.getElementById('tdeeCompareText').innerText = '';
-            currentCalculatedCalorie = 0;
+            document.getElementById('manualFixBlock').style.display = 'none';
+            baseDetectedCalorie = 0;
+            manualAddedCalorie = 0;
 
             updateDashboard();
         });
@@ -551,10 +600,9 @@
             document.getElementById('cutRes').innerText = Math.round(tdee - 400);
             document.getElementById('bulkRes').innerText = Math.round(tdee + 300);
 
-            localStorage.setItem('myTdeeValue', tdee); // 存下 TDEE 方便對比
+            localStorage.setItem('myTdeeValue', tdee);
             document.getElementById('tdeeResult').style.display = 'block';
 
-            // 觸發一次飲食框的實時計算來更新提示
             document.getElementById('todayFood').dispatchEvent(new Event('input'));
         });
 

@@ -4,53 +4,40 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>我的奶茶色體重日記</title>
-    <!-- 引入 App 身份證 -->
+    <title>體重日記</title>
     <link rel="manifest" href="manifest.json">
-    <!-- 針對 iOS Safari 的專屬優化 -->
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <meta name="apple-mobile-web-app-title" content="體重日記">
     <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/3004/3004613.png">
-
-    <!-- 引入優雅靈活的思源黑體字型 -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
-
-    <!-- 引入強大的 Chart.js 圖表引擎 -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
     <style>
-        /* 全局字體與舒適燕麥奶茶背景 */
         body {
             font-family: 'Noto Sans TC', sans-serif;
             padding: 20px;
             background-color: #f5ebe6;
-            /* 溫柔燕麥色 */
             color: #5c4d43;
-            /* 深拿鐵咖啡字體色 */
         }
 
-        /* App 主容器 - 白綢緞圓角質感 */
         .container {
             max-width: 500px;
             margin: 0 auto;
             background: #ffffff;
             padding: 25px;
             border-radius: 20px;
-            /* 超好看圓角 */
             box-shadow: 0 10px 30px rgba(140, 116, 98, 0.08);
-            /* 淡淡的拿鐵色陰影 */
         }
 
-        /* 主標題 */
         h1 {
             text-align: center;
-            color: #7a6253;
+            color: #222222;
+            /* 徹底改成深碳黑色 */
             font-weight: 700;
             margin-bottom: 5px;
-            font-size: 24px;
+            font-size: 26px;
         }
 
         h3 {
@@ -68,7 +55,6 @@
             color: #8c7462;
         }
 
-        /* 精緻輸入框設計 */
         input {
             width: 100%;
             padding: 12px;
@@ -89,7 +75,6 @@
             box-shadow: 0 0 0 3px rgba(184, 142, 111, 0.15);
         }
 
-        /* 奶茶風目標區 */
         .target-box {
             background: #fdfaf7;
             padding: 15px;
@@ -111,12 +96,10 @@
             padding: 8px;
         }
 
-        /* 焦糖瑪奇朵儲存按鈕 */
         #saveBtn {
             width: 100%;
             padding: 14px;
             background-color: #b88e6f;
-            /* 焦糖色 */
             color: white;
             border: none;
             border-radius: 12px;
@@ -134,14 +117,12 @@
             background-color: #a37b5d;
         }
 
-        /* 復古小卡歷史紀錄 */
         .history-item {
             background: #faf6f3;
             padding: 14px;
             border-radius: 12px;
             margin-top: 10px;
             border-left: 5px solid #d9b496;
-            /* 奶茶漸層條 */
             font-size: 14px;
             box-shadow: 0 2px 6px rgba(0, 0, 0, 0.02);
         }
@@ -150,11 +131,11 @@
 
 <body>
     <div class="container">
-        <h1>⚖️ 體重與飲食日記</h1>
+        <!-- 標題名稱確定回歸最純粹的「體重日記」 -->
+        <h1>⚖️ 體重日記</h1>
         <p style="text-align: center; color: #a69285; font-size: 13px; letter-spacing: 1px; margin-top: 0;">BEAUTIFUL
             LIFE & HEALTH</p>
 
-        <!-- 1. 目標設定區 -->
         <div class="target-box">
             <label for="targetWeight">🎯 我的目標體重：</label>
             <div>
@@ -163,7 +144,6 @@
             </div>
         </div>
 
-        <!-- 2. 每日體重輸入區 -->
         <div style="margin-bottom: 15px;">
             <label for="todayWeight">☕ 今日體重紀錄：</label>
             <div style="position: relative; display: flex; align-items: center;">
@@ -172,32 +152,24 @@
             </div>
         </div>
 
-        <!-- 3. 每日飲食輸入區 -->
         <div style="margin-bottom: 20px;">
             <label for="todayFood">🥪 今日飲食日記：</label>
             <input type="text" id="todayFood" placeholder="今天吃了哪些美味食物？">
         </div>
 
-        <!-- 4. 儲存按鈕 -->
         <button id="saveBtn">💾 記錄今天，踏出下一步</button>
 
-        <!-- 5. 圖表顯示區 -->
         <h3>📊 體重趨勢累計圖表</h3>
         <div style="margin-top: 15px; background: #faf6f3; padding: 10px; border-radius: 12px;">
             <canvas id="weightChart" width="400" height="260"></canvas>
         </div>
 
-        <!-- 6. 歷史飲食清單區 -->
         <h3>📜 歷史飲食日記</h3>
         <div id="historyList"></div>
-
     </div>
 
-    <!-- 核心邏輯指令碼 -->
     <script>
         let myChart = null;
-
-        // 註冊離線守護者
         if ('serviceWorker' in navigator) {
             navigator.serviceWorker.register('service-worker.js')
                 .then(() => console.log('Service Worker Active'))
@@ -206,9 +178,7 @@
 
         window.onload = function () {
             const savedTarget = localStorage.getItem('targetWeight');
-            if (savedTarget) {
-                document.getElementById('targetWeight').value = savedTarget;
-            }
+            if (savedTarget) { document.getElementById('targetWeight').value = savedTarget; }
             updateDashboard();
         };
 
@@ -223,32 +193,20 @@
             }
 
             const todayDate = new Date().toLocaleDateString();
-            const dailyData = {
-                weight: parseFloat(todayWeight),
-                food: todayFood,
-                date: todayDate
-            };
+            const dailyData = { weight: parseFloat(todayWeight), food: todayFood, date: todayDate };
 
-            if (targetWeight) {
-                localStorage.setItem('targetWeight', targetWeight);
-            }
+            if (targetWeight) { localStorage.setItem('targetWeight', targetWeight); }
 
             let historyLog = JSON.parse(localStorage.getItem('weightHistoryLog')) || [];
             const existingIndex = historyLog.findIndex(item => item.date === todayDate);
 
-            if (existingIndex !== -1) {
-                historyLog[existingIndex] = dailyData;
-            } else {
-                historyLog.push(dailyData);
-            }
+            if (existingIndex !== -1) { historyLog[existingIndex] = dailyData; }
+            else { historyLog.push(dailyData); }
 
             localStorage.setItem('weightHistoryLog', JSON.stringify(historyLog));
-
             alert('🎉 成功鎖進保險箱！繼續保持，你是最棒的！');
-
             document.getElementById('todayWeight').value = '';
             document.getElementById('todayFood').value = '';
-
             updateDashboard();
         });
 
@@ -272,11 +230,8 @@
             const targetWeight = parseFloat(localStorage.getItem('targetWeight')) || null;
             const targetLine = new Array(dates.length).fill(targetWeight);
 
-            if (myChart) {
-                myChart.destroy();
-            }
+            if (myChart) { myChart.destroy(); }
 
-            // 圖表也改成奶茶配色
             const ctx = document.getElementById('weightChart').getContext('2d');
             myChart = new Chart(ctx, {
                 type: 'line',
@@ -286,7 +241,7 @@
                         {
                             label: '實際體重 (kg)',
                             data: weights,
-                            borderColor: '#b88e6f', /* 焦糖瑪奇朵主線線條 */
+                            borderColor: '#b88e6f',
                             backgroundColor: 'rgba(184, 142, 111, 0.1)',
                             borderWidth: 3,
                             tension: 0.3,
@@ -296,7 +251,7 @@
                         {
                             label: '我的目標',
                             data: targetLine,
-                            borderColor: '#d9c8be', /* 淺奶茶色虛線 */
+                            borderColor: '#d9c8be',
                             borderDash: [6, 6],
                             borderWidth: 2,
                             fill: false,
@@ -307,23 +262,11 @@
                 options: {
                     responsive: true,
                     plugins: {
-                        legend: {
-                            labels: {
-                                font: { family: 'Noto Sans TC' },
-                                color: '#8c7462'
-                            }
-                        }
+                        legend: { labels: { font: { family: 'Noto Sans TC' }, color: '#8c7462' } }
                     },
                     scales: {
-                        x: {
-                            grid: { display: false },
-                            ticks: { color: '#a69285', font: { family: 'Noto Sans TC', size: 10 } }
-                        },
-                        y: {
-                            grid: { color: '#f2e6df' },
-                            ticks: { color: '#a69285', font: { family: 'Noto Sans TC' } },
-                            beginAtZero: false
-                        }
+                        x: { grid: { display: false }, ticks: { color: '#a69285', font: { family: 'Noto Sans TC', size: 10 } } },
+                        y: { grid: { color: '#f2e6df' }, ticks: { color: '#a69285', font: { family: 'Noto Sans TC' } }, beginAtZero: false }
                     }
                 }
             });

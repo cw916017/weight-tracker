@@ -129,22 +129,21 @@
             font-size: 14px;
         }
 
-        /* TDEE 區塊小格子調整 */
+        /* TDEE 與 熱量區塊 */
         .tdee-box {
             background: #fdfaf7;
             padding: 20px;
             border-radius: 15px;
             border: 1px solid #f2e6df;
+            margin-bottom: 15px;
         }
 
-        /* 改為精緻的小網格佈局，並且置中限制最大寬度 */
         .gender-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 10px;
             margin: 0 auto 15px auto;
             max-width: 240px;
-            /* 控制整體寬度不要太大 */
         }
 
         .gender-grid label {
@@ -157,12 +156,10 @@
             font-weight: 700;
             background: #faf6f3;
             padding: 8px 12px;
-            /* 縮小上下左右的內邊距 */
             border: 1px solid #e1d4cc;
             border-radius: 8px;
             margin-bottom: 0;
             font-size: 14px;
-            /* 字體稍微調小一點點顯得精緻 */
             transition: all 0.2s;
         }
 
@@ -198,6 +195,28 @@
 
         .tdee-result-box strong {
             color: #b88e6f;
+            font-size: 16px;
+        }
+
+        /* 食物熱量清單樣式 */
+        .food-list-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #fff;
+            padding: 8px 12px;
+            border-radius: 8px;
+            margin-top: 8px;
+            border: 1px solid #e1d4cc;
+            font-size: 14px;
+        }
+
+        .delete-food-btn {
+            background: none;
+            border: none;
+            color: #d9534f;
+            cursor: pointer;
+            font-weight: 700;
             font-size: 16px;
         }
 
@@ -318,7 +337,6 @@
 
         <h3>🔥 TDEE 熱量計算機</h3>
         <div class="tdee-box">
-            <!-- 精緻小巧的男女網格 -->
             <div class="gender-grid">
                 <label><input type="radio" name="gender" value="M" checked> <span>👨 男性</span></label>
                 <label><input type="radio" name="gender" value="F"> <span>👩 女性</span></label>
@@ -343,6 +361,47 @@
                 <hr style="border: 0; border-top: 1px dashed #d9c8be; margin: 10px 0;">
                 <p>💡 <strong>減脂建議：</strong>每日攝取約 <strong style="color:#d9534f;" id="cutRes">0</strong> 大卡</p>
                 <p>💪 <strong>增肌建議：</strong>每日攝取約 <strong style="color:#5cb85c;" id="bulkRes">0</strong> 大卡</p>
+            </div>
+        </div>
+
+        <h3>🥑 精確食物熱量計算機 (完全免費)</h3>
+        <div class="tdee-box" style="background: #fcfcfc;">
+            <label>🍎 選擇內建常見食材：</label>
+            <select id="foodSelect">
+                <option value="custom">-- 自定義輸入別的食物 --</option>
+                <option value="130">🍚 白飯 (每100g / 130大卡)</option>
+                <option value="165">🐔 雞胸肉 (每100g / 165大卡)</option>
+                <option value="74">🥚 水煮蛋 (1顆約50g / 74大卡)</option>
+                <option value="124">🍠 地瓜 (每100g / 124大卡)</option>
+                <option value="250">🥩 煎牛排 (每100g / 250大卡)</option>
+                <option value="45">🥦 燙青菜 (每100g / 45大卡)</option>
+                <option value="55">🥛 無糖豆漿 (每100ml / 55大卡)</option>
+                <option value="180">🧋 奶茶/含糖飲料 (每100ml / 180大卡)</option>
+            </select>
+
+            <div id="customFoodInputBlock">
+                <label>✏️ 食物名稱：</label>
+                <input type="text" id="customFoodName" placeholder="例如：超商三明治">
+                <label>🔥 精確熱量 (大卡)：</label>
+                <input type="number" id="customFoodCal" placeholder="例如：350">
+            </div>
+
+            <div id="weightInputBlock" style="display:none;">
+                <label>⚖️ 輸入吃了多少 (克g 或 毫升ml)：</label>
+                <input type="number" id="foodWeight" placeholder="例如：200">
+            </div>
+
+            <button id="addFoodBtn" class="primary-btn" style="background-color: #a69285; box-shadow: none;">➕
+                新增至今日攝取</button>
+
+            <div style="margin-top: 20px;">
+                <p style="font-weight: 700; margin-bottom: 5px;">🍽️ 今日已攝取總熱量：<span id="totalEatCal"
+                        style="color:#b88e6f; font-size: 20px;">0</span> 大卡</p>
+                <!-- 與 TDEE 連動的動態狀態提示 -->
+                <p id="calorieStatusText" style="font-size: 13px; color: #8c7462; font-style: italic; margin-top: 0;">
+                </p>
+
+                <div id="todayFoodList"></div>
             </div>
         </div>
 
@@ -378,16 +437,153 @@
 
     <script>
         let myChart = null;
-        if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('service-worker.js').catch(err => console.log('SW Error: ', err));
-        }
+        let todayFoods = []; // 當天暫存的食物陣列
 
         window.onload = function () {
             const savedTarget = localStorage.getItem('targetWeight');
             if (savedTarget) { document.getElementById('targetWeight').value = savedTarget; }
+
+            // 載入今天已經儲存的食物
+            const todayDate = new Date().toLocaleDateString();
+            const allFoodLogs = JSON.parse(localStorage.getItem('foodCalorieLogs')) || {};
+            todayFoods = allFoodLogs[todayDate] || [];
+
+            updateFoodListUI();
             updateDashboard();
         };
 
+        // 食物選單切換顯示邏輯
+        document.getElementById('foodSelect').addEventListener('change', function () {
+            if (this.value === 'custom') {
+                document.getElementById('customFoodInputBlock').style.display = 'block';
+                document.getElementById('weightInputBlock').style.display = 'none';
+            } else {
+                document.getElementById('customFoodInputBlock').style.display = 'none';
+                document.getElementById('weightInputBlock').style.display = 'block';
+            }
+        });
+
+        // 新增食物按鈕
+        document.getElementById('addFoodBtn').addEventListener('click', function () {
+            const selectVal = document.getElementById('foodSelect').value;
+            let foodName = "";
+            let finalCal = 0;
+
+            if (selectVal === 'custom') {
+                foodName = document.getElementById('customFoodName').value.trim();
+                finalCal = parseFloat(document.getElementById('customFoodCal').value);
+                if (!foodName || !finalCal) { alert("老闆，名稱和熱量都要填寫喔！"); return; }
+            } else {
+                const selectEl = document.getElementById('foodSelect');
+                foodName = selectEl.options[selectEl.selectedIndex].text.split(' (')[0];
+                const weight = parseFloat(document.getElementById('foodWeight').value);
+                if (!weight) { alert("老闆，請輸入吃了多少克或毫升！"); return; }
+
+                // 計算每克/毫升的精確熱量 (水煮蛋特殊處理按顆算，其餘按100g算)
+                if (selectVal === "74") {
+                    finalCal = Math.round(parseFloat(selectVal) * (weight / 50));
+                    foodName += ` (${weight}g)`;
+                } else {
+                    finalCal = Math.round((parseFloat(selectVal) / 100) * weight);
+                    foodName += ` (${weight}g/ml)`;
+                }
+            }
+
+            // 新增至陣列
+            todayFoods.push({ name: foodName, calories: finalCal, id: Date.now() });
+
+            // 存入 LocalStorage
+            const todayDate = new Date().toLocaleDateString();
+            const allFoodLogs = JSON.parse(localStorage.getItem('foodCalorieLogs')) || {};
+            allFoodLogs[todayDate] = todayFoods;
+            localStorage.setItem('foodCalorieLogs', JSON.stringify(allFoodLogs));
+
+            // 清空輸入欄位
+            document.getElementById('customFoodName').value = '';
+            document.getElementById('customFoodCal').value = '';
+            document.getElementById('foodWeight').value = '';
+
+            updateFoodListUI();
+        });
+
+        // 更新食物列表與加總 UI
+        function updateFoodListUI() {
+            const listDiv = document.getElementById('todayFoodList');
+            listDiv.innerHTML = '';
+            let totalCal = 0;
+
+            todayFoods.forEach(item => {
+                totalCal += item.calories;
+                const itemEl = document.createElement('div');
+                itemEl.className = 'food-list-item';
+                itemEl.innerHTML = `
+                    <span>${item.name}</span>
+                    <span>🔥 ${item.calories} kcal <button class="delete-food-btn" onclick="deleteFood(${item.id})">&times;</button></span>
+                `;
+                listDiv.appendChild(itemEl);
+            });
+
+            document.getElementById('totalEatCal').innerText = totalCal;
+
+            // 與 TDEE 計算聯動狀態提示
+            const tdeeText = document.getElementById('tdeeRes').innerText;
+            const statusTextEl = document.getElementById('calorieStatusText');
+            if (tdeeText && tdeeText !== "0") {
+                const targetTdee = parseInt(tdeeText);
+                const remaining = targetTdee - totalCal;
+                if (remaining >= 0) {
+                    statusTextEl.innerHTML = `💡 距離今日 TDEE 額度還剩 <strong style="color:#5cb85c;">${remaining}</strong> 大卡可以吃！`;
+                } else {
+                    statusTextEl.innerHTML = `⚠️ 警告！已超出今日 TDEE 額度 <strong style="color:#d9534f;">${Math.abs(remaining)}</strong> 大卡！`;
+                }
+            } else {
+                statusTextEl.innerText = "💡 提示：上方計算完 TDEE 後，這裡會自動顯示剩餘熱量額度喔！";
+            }
+        }
+
+        // 刪除個別食物
+        window.deleteFood = function (id) {
+            todayFoods = todayFoods.filter(item => item.id !== id);
+            const todayDate = new Date().toLocaleDateString();
+            const allFoodLogs = JSON.parse(localStorage.getItem('foodCalorieLogs')) || {};
+            allFoodLogs[todayDate] = todayFoods;
+            localStorage.setItem('foodCalorieLogs', JSON.stringify(allFoodLogs));
+            updateFoodListUI();
+        };
+
+        // 點擊體重欄帶入最新
+        document.getElementById('tdeeWeightInput').addEventListener('click', function () {
+            let historyLog = JSON.parse(localStorage.getItem('weightHistoryLog')) || [];
+            if (historyLog.length > 0 && !this.value) {
+                historyLog.sort((a, b) => new Date(b.date) - new Date(a.date));
+                this.value = historyLog[0].weight;
+            }
+        });
+
+        // TDEE 計算
+        document.getElementById('calcTdeeBtn').addEventListener('click', function () {
+            const gender = document.querySelector('input[name="gender"]:checked').value;
+            const age = parseFloat(document.getElementById('tdeeAge').value);
+            const height = parseFloat(document.getElementById('tdeeHeight').value);
+            const weight = parseFloat(document.getElementById('tdeeWeightInput').value);
+            const activity = parseFloat(document.getElementById('tdeeActivity').value);
+
+            if (!age || !height || !weight) { alert("老闆，資料填齊才能精確計算喔！"); return; }
+
+            let bmr = (10 * weight) + (6.25 * height) - (5 * age);
+            bmr = gender === 'M' ? bmr + 5 : bmr - 161;
+            const tdee = bmr * activity;
+
+            document.getElementById('bmrRes').innerText = Math.round(bmr);
+            document.getElementById('tdeeRes').innerText = Math.round(tdee);
+            document.getElementById('cutRes').innerText = Math.round(tdee - 400);
+            document.getElementById('bulkRes').innerText = Math.round(tdee + 300);
+
+            document.getElementById('tdeeResult').style.display = 'block';
+            updateFoodListUI(); // 重新整理熱量連動狀態
+        });
+
+        // 儲存體重記錄
         document.getElementById('saveBtn').addEventListener('click', function () {
             const targetWeight = document.getElementById('targetWeight').value;
             const todayWeight = document.getElementById('todayWeight').value;
@@ -412,36 +608,7 @@
             updateDashboard();
         });
 
-        document.getElementById('tdeeWeightInput').addEventListener('click', function () {
-            let historyLog = JSON.parse(localStorage.getItem('weightHistoryLog')) || [];
-            if (historyLog.length > 0 && !this.value) {
-                historyLog.sort((a, b) => new Date(b.date) - new Date(a.date));
-                this.value = historyLog[0].weight;
-            }
-        });
-
-        document.getElementById('calcTdeeBtn').addEventListener('click', function () {
-            const gender = document.querySelector('input[name="gender"]:checked').value;
-            const age = parseFloat(document.getElementById('tdeeAge').value);
-            const height = parseFloat(document.getElementById('tdeeHeight').value);
-            const weight = parseFloat(document.getElementById('tdeeWeightInput').value);
-            const activity = parseFloat(document.getElementById('tdeeActivity').value);
-
-            if (!age || !height || !weight) { alert("老闆，年齡、身高、體重要填齊才能算喔！"); return; }
-
-            let bmr = (10 * weight) + (6.25 * height) - (5 * age);
-            bmr = gender === 'M' ? bmr + 5 : bmr - 161;
-
-            const tdee = bmr * activity;
-
-            document.getElementById('bmrRes').innerText = Math.round(bmr);
-            document.getElementById('tdeeRes').innerText = Math.round(tdee);
-            document.getElementById('cutRes').innerText = Math.round(tdee - 400);
-            document.getElementById('bulkRes').innerText = Math.round(tdee + 300);
-
-            document.getElementById('tdeeResult').style.display = 'block';
-        });
-
+        // 懸浮鈕進度報告
         const fabBtn = document.getElementById('fabBtn');
         const modal = document.getElementById('progressModal');
         const closeModal = document.getElementById('closeModal');
@@ -468,7 +635,6 @@
             else if (totalToLose < 0) { percent = Math.round(((currentWeight - startWeight) / (targetWeight - startWeight)) * 100); }
 
             if (percent < 0) percent = 0;
-
             document.getElementById('progressPercent').innerText = `${percent}%`;
 
             let quote = "";
@@ -481,17 +647,15 @@
             } else {
                 document.getElementById('progressKg').innerText = `超狂！已經達標了！`;
                 document.getElementById('progressBarFill').style.background = "linear-gradient(90deg, #5cb85c, #4cae4c)";
-                quote = "🎉 太神啦元泰老闆！目標達成！快去吃頓大餐犒賞自己，然後準備設定下一個巔峰目標吧！";
+                quote = "🎉 太神啦元泰老闆！目標達成！快去吃頓大餐犒賞自己！";
             }
 
             document.getElementById('progressQuote').innerText = quote;
             modal.style.display = 'flex';
-
             setTimeout(() => { document.getElementById('progressBarFill').style.width = `${percent > 100 ? 100 : percent}%`; }, 100);
         });
 
         closeModal.addEventListener('click', () => { modal.style.display = 'none'; document.getElementById('progressBarFill').style.width = '0%'; });
-        window.addEventListener('click', (e) => { if (e.target === modal) { modal.style.display = 'none'; document.getElementById('progressBarFill').style.width = '0%'; } });
 
         function updateDashboard() {
             let historyLog = JSON.parse(localStorage.getItem('weightHistoryLog')) || [];

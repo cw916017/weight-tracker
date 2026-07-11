@@ -1,0 +1,16 @@
+{
+    "name": "每日體重與飲食日記",
+    "short_name": "體重日記",
+    "start_url": "index.html",
+    "display": "standalone",
+    "background_color": "#f0f2f5",
+    "theme_color": "#007bff",
+    "icons": [
+        {
+            "src": "https://cdn-icons-png.flaticon.com/512/3004/3004613.png",
+            "sizes": "512x512",
+            "type": "image/png",
+            "purpose": "any maskable"
+        }
+    ]
+}

@@ -129,7 +129,7 @@
             font-size: 14px;
         }
 
-        /* TDEE 區塊全面精準升級 */
+        /* TDEE 區塊小格子調整 */
         .tdee-box {
             background: #fdfaf7;
             padding: 20px;
@@ -137,31 +137,41 @@
             border: 1px solid #f2e6df;
         }
 
-        /* 使用 Grid 將男女按鈕對半分，絕對不跑格 */
+        /* 改為精緻的小網格佈局，並且置中限制最大寬度 */
         .gender-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 15px;
-            margin-bottom: 15px;
+            gap: 10px;
+            margin: 0 auto 15px auto;
+            max-width: 240px;
+            /* 控制整體寬度不要太大 */
         }
 
         .gender-grid label {
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 8px;
+            gap: 6px;
             cursor: pointer;
             color: #5c4d43;
             font-weight: 700;
             background: #faf6f3;
-            padding: 12px;
+            padding: 8px 12px;
+            /* 縮小上下左右的內邊距 */
             border: 1px solid #e1d4cc;
-            border-radius: 10px;
+            border-radius: 8px;
             margin-bottom: 0;
+            font-size: 14px;
+            /* 字體稍微調小一點點顯得精緻 */
             transition: all 0.2s;
         }
 
-        /* 當選取時，外框變深、背景變亮 */
+        .gender-grid input[type="radio"] {
+            width: auto;
+            margin: 0;
+            cursor: pointer;
+        }
+
         .gender-grid input[type="radio"]:checked+span {
             color: #b88e6f;
         }
@@ -169,7 +179,7 @@
         .gender-grid label:has(input[type="radio"]:checked) {
             border-color: #b88e6f;
             background: #ffffff;
-            box-shadow: 0 2px 8px rgba(184, 142, 111, 0.1);
+            box-shadow: 0 2px 6px rgba(184, 142, 111, 0.08);
         }
 
         .tdee-result-box {
@@ -308,7 +318,7 @@
 
         <h3>🔥 TDEE 熱量計算機</h3>
         <div class="tdee-box">
-            <!-- 改用完美的 Grid 佈局，精準對齊 -->
+            <!-- 精緻小巧的男女網格 -->
             <div class="gender-grid">
                 <label><input type="radio" name="gender" value="M" checked> <span>👨 男性</span></label>
                 <label><input type="radio" name="gender" value="F"> <span>👩 女性</span></label>

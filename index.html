@@ -21,7 +21,6 @@
             background-color: #f5ebe6;
             color: #5c4d43;
             padding-bottom: 80px;
-            /* 留空間給懸浮鈕 */
         }
 
         .container {
@@ -130,7 +129,7 @@
             font-size: 14px;
         }
 
-        /* TDEE 區塊特殊樣式 */
+        /* TDEE 區塊全面精準升級 */
         .tdee-box {
             background: #fdfaf7;
             padding: 20px;
@@ -138,19 +137,39 @@
             border: 1px solid #f2e6df;
         }
 
-        .gender-radio {
-            display: flex;
+        /* 使用 Grid 將男女按鈕對半分，絕對不跑格 */
+        .gender-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
             gap: 15px;
             margin-bottom: 15px;
         }
 
-        .gender-radio label {
+        .gender-grid label {
             display: flex;
             align-items: center;
-            gap: 5px;
+            justify-content: center;
+            gap: 8px;
             cursor: pointer;
             color: #5c4d43;
             font-weight: 700;
+            background: #faf6f3;
+            padding: 12px;
+            border: 1px solid #e1d4cc;
+            border-radius: 10px;
+            margin-bottom: 0;
+            transition: all 0.2s;
+        }
+
+        /* 當選取時，外框變深、背景變亮 */
+        .gender-grid input[type="radio"]:checked+span {
+            color: #b88e6f;
+        }
+
+        .gender-grid label:has(input[type="radio"]:checked) {
+            border-color: #b88e6f;
+            background: #ffffff;
+            box-shadow: 0 2px 8px rgba(184, 142, 111, 0.1);
         }
 
         .tdee-result-box {
@@ -289,21 +308,22 @@
 
         <h3>🔥 TDEE 熱量計算機</h3>
         <div class="tdee-box">
-            <div class="gender-radio">
-                <label><input type="radio" name="gender" value="M" checked> 👨 男性</label>
-                <label><input type="radio" name="gender" value="F"> 👩 女性</label>
+            <!-- 改用完美的 Grid 佈局，精準對齊 -->
+            <div class="gender-grid">
+                <label><input type="radio" name="gender" value="M" checked> <span>👨 男性</span></label>
+                <label><input type="radio" name="gender" value="F"> <span>👩 女性</span></label>
             </div>
             <div style="display: flex; gap: 10px;">
                 <input type="number" id="tdeeAge" placeholder="年齡 (歲)">
                 <input type="number" id="tdeeHeight" placeholder="身高 (cm)">
             </div>
-            <input type="number" id="tdeeWeightInput" placeholder="目前體重 (kg) - 點擊自動帶入今日體重">
+            <input type="number" id="tdeeWeightInput" placeholder="目前體重 (kg) - 點擊帶入最新紀錄">
             <select id="tdeeActivity">
                 <option value="1.2">🛋️ 久坐 (幾乎不運動)</option>
                 <option value="1.375">🚶 輕度 (每週運動1-3天)</option>
                 <option value="1.55">🏃 中度 (每週運動3-5天)</option>
                 <option value="1.725">🏋️ 高度 (每週運動6-7天)</option>
-                <option value="1.9">🔥 極度 (勞力密集或天天雙倍訓練)</option>
+                <option value="1.9">🔥 極度 (雙倍強訓勞力)</option>
             </select>
             <button id="calcTdeeBtn" class="primary-btn" style="background-color: #8c7462;">🧮 計算專屬熱量</button>
 
@@ -358,7 +378,6 @@
             updateDashboard();
         };
 
-        // 儲存紀錄邏輯
         document.getElementById('saveBtn').addEventListener('click', function () {
             const targetWeight = document.getElementById('targetWeight').value;
             const todayWeight = document.getElementById('todayWeight').value;
@@ -383,7 +402,6 @@
             updateDashboard();
         });
 
-        // 點擊 TDEE 體重框，自動帶入最新體重
         document.getElementById('tdeeWeightInput').addEventListener('click', function () {
             let historyLog = JSON.parse(localStorage.getItem('weightHistoryLog')) || [];
             if (historyLog.length > 0 && !this.value) {
@@ -392,7 +410,6 @@
             }
         });
 
-        // TDEE 計算邏輯
         document.getElementById('calcTdeeBtn').addEventListener('click', function () {
             const gender = document.querySelector('input[name="gender"]:checked').value;
             const age = parseFloat(document.getElementById('tdeeAge').value);
@@ -402,7 +419,6 @@
 
             if (!age || !height || !weight) { alert("老闆，年齡、身高、體重要填齊才能算喔！"); return; }
 
-            // Mifflin-St Jeor 公式
             let bmr = (10 * weight) + (6.25 * height) - (5 * age);
             bmr = gender === 'M' ? bmr + 5 : bmr - 161;
 
@@ -410,13 +426,12 @@
 
             document.getElementById('bmrRes').innerText = Math.round(bmr);
             document.getElementById('tdeeRes').innerText = Math.round(tdee);
-            document.getElementById('cutRes').innerText = Math.round(tdee - 400); // 減脂少 400
-            document.getElementById('bulkRes').innerText = Math.round(tdee + 300); // 增肌多 300
+            document.getElementById('cutRes').innerText = Math.round(tdee - 400);
+            document.getElementById('bulkRes').innerText = Math.round(tdee + 300);
 
             document.getElementById('tdeeResult').style.display = 'block';
         });
 
-        // 懸浮按鈕進度邏輯
         const fabBtn = document.getElementById('fabBtn');
         const modal = document.getElementById('progressModal');
         const closeModal = document.getElementById('closeModal');
@@ -430,28 +445,21 @@
                 return;
             }
 
-            // 抓取最早體重當作起點，最新體重當作現在
             historyLog.sort((a, b) => new Date(a.date) - new Date(b.date));
             const startWeight = historyLog[0].weight;
             const currentWeight = historyLog[historyLog.length - 1].weight;
 
-            // 計算差距與百分比
             const totalToLose = startWeight - targetWeight;
             const currentLost = startWeight - currentWeight;
             const remaining = currentWeight - targetWeight;
 
             let percent = 0;
-            if (totalToLose > 0) {
-                percent = Math.round((currentLost / totalToLose) * 100);
-            } else if (totalToLose < 0) {
-                // 增重模式
-                percent = Math.round(((currentWeight - startWeight) / (targetWeight - startWeight)) * 100);
-            }
+            if (totalToLose > 0) { percent = Math.round((currentLost / totalToLose) * 100); }
+            else if (totalToLose < 0) { percent = Math.round(((currentWeight - startWeight) / (targetWeight - startWeight)) * 100); }
 
-            if (percent < 0) percent = 0; // 變胖的話算0%
+            if (percent < 0) percent = 0;
 
             document.getElementById('progressPercent').innerText = `${percent}%`;
-            document.getElementById('progressBarFill').style.width = `${percent > 100 ? 100 : percent}%`;
 
             let quote = "";
             if (remaining > 0) {
@@ -469,14 +477,12 @@
             document.getElementById('progressQuote').innerText = quote;
             modal.style.display = 'flex';
 
-            // 重置動畫
             setTimeout(() => { document.getElementById('progressBarFill').style.width = `${percent > 100 ? 100 : percent}%`; }, 100);
         });
 
         closeModal.addEventListener('click', () => { modal.style.display = 'none'; document.getElementById('progressBarFill').style.width = '0%'; });
         window.addEventListener('click', (e) => { if (e.target === modal) { modal.style.display = 'none'; document.getElementById('progressBarFill').style.width = '0%'; } });
 
-        // 圖表與列表更新
         function updateDashboard() {
             let historyLog = JSON.parse(localStorage.getItem('weightHistoryLog')) || [];
             historyLog.sort((a, b) => new Date(a.date) - new Date(b.date));

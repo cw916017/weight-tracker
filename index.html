@@ -3,110 +3,71 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>體重日記 - 雲端版</title>
-    <!-- CSS 部分沿用你原本的樣式即可，此處省略以保持精簡 -->
+    <title>體重日記</title>
     <style>
-        /* (這裡保持你原本的 CSS 樣式) */
+        /* 所有的 CSS 樣式只能存在這裡 */
         body {
             font-family: 'Noto Sans TC', sans-serif;
-            padding: 20px;
-            background-color: #f5ebe6;
-            color: #5c4d43;
+            /* ...其餘內容... */
         }
 
         .container {
-            max-width: 500px;
-            margin: 0 auto;
-            background: #ffffff;
-            padding: 25px;
-            border-radius: 20px;
+            /* ...其餘內容... */
         }
 
-        input {
-            width: 100%;
-            padding: 12px;
-            border: 1px solid #e1d4cc;
-            border-radius: 10px;
-            box-sizing: border-box;
-            margin-bottom: 12px;
-        }
-
-        .primary-btn {
-            width: 100%;
-            padding: 14px;
-            background-color: #b88e6f;
-            color: white;
-            border: none;
-            border-radius: 12px;
-            font-weight: 700;
-            cursor: pointer;
-        }
+        /* 其他 CSS 規則 */
     </style>
 </head>
 
 <body>
     <div class="container">
-        <h1>⚖️ 體重日記 (雲端同步版)</h1>
-
-        <!-- 新增姓名欄位 -->
-        <label for="userName">👤 請輸入您的名字：</label>
-        <input type="text" id="userName" placeholder="例如：王小明">
-
-        <label for="targetWeight">🎯 目標體重：</label>
-        <input type="number" id="targetWeight" placeholder="75">
-
-        <label for="todayWeight">☕ 今日體重紀錄：</label>
-        <input type="number" step="0.1" id="todayWeight" placeholder="0.0">
-
-        <label for="todayFood">🥪 今日飲食：</label>
-        <input type="text" id="todayFood" placeholder="例如：雞排">
-
-        <button id="saveBtn" class="primary-btn">💾 存檔並同步至 Google Sheets</button>
-
-        <!-- 其他內容 (圖表、歷史等) 請保持原本的位置 -->
+        <!-- 這裡只放 HTML 元素，例如 input, button 等 -->
+        <h1>⚖️ 體重日記</h1>
+        <!-- ... -->
     </div>
+</body>
 
-    <script>
-        // 核心設定：請把你的 Google Apps Script 網址貼在下面
-        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycby-BByVTZqaV0GNbnJKsVc1z3tGAK7ZU3wpNrAafYwGamp0XdU7eot02Szwpo7Fn_iD1A/exec";
+</html>
+// 核心設定：請把你的 Google Apps Script 網址貼在下面
+const SCRIPT_URL =
+"https://script.google.com/macros/s/AKfycby-BByVTZqaV0GNbnJKsVc1z3tGAK7ZU3wpNrAafYwGamp0XdU7eot02Szwpo7Fn_iD1A/exec";
 
-        document.getElementById('saveBtn').addEventListener('click', function () {
-            const name = document.getElementById('userName').value;
-            const todayWeight = document.getElementById('todayWeight').value;
-            const todayFood = document.getElementById('todayFood').value;
-            const finalTotal = 0; // 這裡視情況串接你的熱量變數
+document.getElementById('saveBtn').addEventListener('click', function () {
+const name = document.getElementById('userName').value;
+const todayWeight = document.getElementById('todayWeight').value;
+const todayFood = document.getElementById('todayFood').value;
+const finalTotal = 0; // 這裡視情況串接你的熱量變數
 
-            if (!name) { alert('請輸入姓名喔！'); return; }
-            if (!todayWeight) { alert('記得填寫體重！'); return; }
+if (!name) { alert('請輸入姓名喔！'); return; }
+if (!todayWeight) { alert('記得填寫體重！'); return; }
 
-            const dailyData = {
-                name: name,
-                date: new Date().toLocaleDateString(),
-                weight: parseFloat(todayWeight),
-                food: todayFood,
-                calories: finalTotal
-            };
+const dailyData = {
+name: name,
+date: new Date().toLocaleDateString(),
+weight: parseFloat(todayWeight),
+food: todayFood,
+calories: finalTotal
+};
 
-            // 1. 本地存一份
-            let historyLog = JSON.parse(localStorage.getItem('weightHistoryLog')) || [];
-            historyLog.push(dailyData);
-            localStorage.setItem('weightHistoryLog', JSON.stringify(historyLog));
+// 1. 本地存一份
+let historyLog = JSON.parse(localStorage.getItem('weightHistoryLog')) || [];
+historyLog.push(dailyData);
+localStorage.setItem('weightHistoryLog', JSON.stringify(historyLog));
 
-            // 2. 傳送到 Google Sheets
-            fetch(SCRIPT_URL, {
-                method: 'POST',
-                mode: 'no-cors',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(dailyData)
-            }).then(() => {
-                alert('🎉 資料已成功傳送到您的 Google Sheets！');
-            }).catch(err => {
-                console.error(err);
-                alert('同步失敗，但已儲存至本地。');
-            });
-        });
-    </script>
+// 2. 傳送到 Google Sheets
+fetch(SCRIPT_URL, {
+method: 'POST',
+mode: 'no-cors',
+headers: { 'Content-Type': 'application/json' },
+body: JSON.stringify(dailyData)
+}).then(() => {
+alert('🎉 資料已成功傳送到您的 Google Sheets！');
+}).catch(err => {
+console.error(err);
+alert('同步失敗，但已儲存至本地。');
+});
+});
+</script>
 </body>
 
 </html>

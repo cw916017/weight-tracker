@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>體重日記</title>
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         body {
@@ -29,75 +29,86 @@
             text-align: center;
             color: #222222;
             font-weight: 700;
-            margin-bottom: 5px;
-            font-size: 26px;
+            margin-bottom: 20px;
+        }
+
+        h3 {
+            color: #8c7462;
+            font-weight: 700;
+            border-bottom: 2px solid #f2e6df;
+            padding-bottom: 8px;
+            margin-top: 30px;
+        }
+
+        .card {
+            background: #fdfaf7;
+            padding: 20px;
+            border-radius: 15px;
+            border: 1px solid #f2e6df;
+            margin-bottom: 20px;
         }
 
         label {
             display: block;
             font-weight: 500;
-            margin: 15px 0 8px 0;
+            margin-bottom: 8px;
             color: #8c7462;
         }
 
-        input {
+        input,
+        select {
             width: 100%;
             padding: 12px;
             border: 1px solid #e1d4cc;
             border-radius: 10px;
             box-sizing: border-box;
             background: #faf6f3;
+            margin-bottom: 10px;
         }
 
-        .action-card {
-            background: #fdfaf7;
-            padding: 15px;
-            border-radius: 12px;
-            border: 1px solid #f2e6df;
-            margin-bottom: 20px;
+        .btn-group {
+            display: flex;
+            gap: 10px;
         }
 
         button {
-            width: 100%;
-            padding: 12px;
+            flex: 1;
+            padding: 14px;
             border: none;
-            border-radius: 10px;
+            border-radius: 12px;
             font-weight: 700;
             cursor: pointer;
-            margin-top: 10px;
+            color: white;
             transition: 0.2s;
         }
 
         .btn-weight {
             background-color: #8c7462;
-            color: white;
         }
 
         .btn-food {
             background-color: #b88e6f;
-            color: white;
         }
 
         button:active {
-            transform: scale(0.98);
+            transform: scale(0.97);
         }
 
-        .live-preview {
-            font-size: 13px;
-            color: #a69285;
-            margin-top: 8px;
-            padding: 10px;
-            background: #fff;
-            border-radius: 8px;
+        .live-calorie-preview {
+            background: #fffcf7;
+            padding: 12px;
+            border-radius: 10px;
             border: 1px dashed #d9c8be;
+            font-size: 13px;
+            margin-bottom: 10px;
         }
 
         .history-item {
             background: #faf6f3;
-            padding: 12px;
-            border-radius: 10px;
+            padding: 14px;
+            border-radius: 12px;
             margin-top: 10px;
-            border-left: 4px solid #d9b496;
+            border-left: 5px solid #d9b496;
             font-size: 14px;
         }
     </style>
@@ -108,41 +119,37 @@
         <h1>⚖️ 體重日記</h1>
 
         <!-- 體重區塊 -->
-        <div class="action-card">
+        <div class="card">
             <label>🎯 目標體重 (kg)：</label>
             <input type="number" id="targetWeight" placeholder="75">
-
             <label>☕ 今日體重 (kg)：</label>
             <input type="number" step="0.1" id="todayWeight" placeholder="0.0">
-            <button class="btn-weight" onclick="saveWeight()">💾 鎖定今日體重</button>
+            <button class="btn-weight" onclick="saveWeight()">💾 存下今日體重</button>
         </div>
 
         <!-- 飲食區塊 -->
-        <div class="action-card">
-            <label>🥪 今日飲食日記：</label>
-            <input type="text" id="todayFood" placeholder="例如：吃了雞排、滷肉飯">
-            <div class="live-preview" id="caloriePreview">預估熱量：0 大卡</div>
+        <div class="card">
+            <label>🥪 今日飲食：</label>
+            <input type="text" id="todayFood" placeholder="輸入食物，如：雞排">
+            <div class="live-calorie-preview" id="caloriePreview">預估熱量：0 大卡</div>
             <button class="btn-food" onclick="saveFood()">🍎 紀錄今日飲食</button>
         </div>
+
+        <h3>📊 體重趨勢</h3>
+        <canvas id="weightChart" height="200"></canvas>
 
         <h3>📜 歷史紀錄</h3>
         <div id="historyList"></div>
     </div>
 
     <script>
-        const calorieDictionary = [
-            { keywords: ["雞排"], calorie: 650 }, { keywords: ["滷肉飯"], calorie: 450 },
-            { keywords: ["牛肉麵"], calorie: 800 }, { keywords: ["茶葉蛋"], calorie: 74 },
-            { keywords: ["便當"], calorie: 750 }, { keywords: ["鹹酥雞"], calorie: 550 }
-        ];
+        const dictionary = { "雞排": 650, "滷肉飯": 450, "便當": 750, "牛肉麵": 800 };
 
-        // 偵測熱量
+        // 飲食自動偵測
         document.getElementById('todayFood').addEventListener('input', function () {
             let total = 0;
-            calorieDictionary.forEach(item => {
-                item.keywords.forEach(key => {
-                    if (this.value.includes(key)) total += item.calorie;
-                });
+            Object.keys(dictionary).forEach(key => {
+                if (this.value.includes(key)) total += dictionary[key];
             });
             document.getElementById('caloriePreview').innerText = `預估熱量：${total} 大卡`;
         });
@@ -150,38 +157,38 @@
         function saveWeight() {
             const w = document.getElementById('todayWeight').value;
             const t = document.getElementById('targetWeight').value;
-            if (!w) { alert('請輸入體重'); return; }
+            if (!w) { alert('請填寫體重'); return; }
             localStorage.setItem('targetWeight', t);
-            saveLog({ date: new Date().toLocaleDateString(), weight: w, type: '體重' });
-            alert('體重已鎖定！');
+            addLog({ date: new Date().toLocaleDateString(), weight: w, type: '體重' });
+            alert('體重已儲存');
         }
 
         function saveFood() {
             const f = document.getElementById('todayFood').value;
             const cal = document.getElementById('caloriePreview').innerText;
-            if (!f) { alert('請輸入飲食內容'); return; }
-            saveLog({ date: new Date().toLocaleDateString(), food: f, cal: cal, type: '飲食' });
-            alert('飲食已紀錄！');
+            if (!f) { alert('請填寫飲食'); return; }
+            addLog({ date: new Date().toLocaleDateString(), food: f, cal: cal, type: '飲食' });
+            alert('飲食已儲存');
         }
 
-        function saveLog(data) {
+        function addLog(data) {
             let logs = JSON.parse(localStorage.getItem('myLogs') || '[]');
             logs.push(data);
             localStorage.setItem('myLogs', JSON.stringify(logs));
-            renderLogs();
+            updateUI();
         }
 
-        function renderLogs() {
-            const list = document.getElementById('historyList');
+        function updateUI() {
             const logs = JSON.parse(localStorage.getItem('myLogs') || '[]');
-            list.innerHTML = logs.map(l => `
+            document.getElementById('historyList').innerHTML = logs.reverse().map(l => `
                 <div class="history-item">
                     📅 ${l.date} | 類型：${l.type}<br>
                     ${l.weight ? `⚖️ ${l.weight} kg` : `🍎 ${l.food} (${l.cal})`}
-                </div>
-            `).join('');
+                </div>`).join('');
+
+            // 這裡可以放圖表繪製邏輯
         }
-        renderLogs();
+        updateUI();
     </script>
 </body>
 

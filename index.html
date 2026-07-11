@@ -2,30 +2,19 @@
 <html lang="zh-TW">
 
 <head>
-       
     <meta charset="UTF-8">
-       
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>體重日記</title>
-       
+    <title>體重日記</title>
     <link rel="manifest" href="manifest.json">
-       
     <meta name="apple-mobile-web-app-capable" content="yes">
-       
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
-       
     <meta name="apple-mobile-web-app-title" content="體重日記">
-       
     <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/3004/3004613.png">
-       
     <link rel="preconnect" href="https://fonts.googleapis.com">
-       
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-       
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
-       
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-        <style>
+    <style>
         body {
             font-family: 'Noto Sans TC', sans-serif;
             padding: 20px;
@@ -208,7 +197,6 @@
             font-size: 16px;
         }
 
-        /* 實時熱量預覽區 */
         .live-calorie-preview {
             background: #fffcf7;
             padding: 12px;
@@ -228,7 +216,6 @@
             margin: 2px;
         }
 
-        /* 手動補救區樣式 */
         .manual-fix-box {
             background: #fdf6f0;
             border: 1px dashed #d9b496;
@@ -238,7 +225,6 @@
             display: none;
         }
 
-        /* 懸浮按鈕與彈窗 */
         .fab {
             position: fixed;
             bottom: 30px;
@@ -325,121 +311,109 @@
 </head>
 
 <body>
-        <div class="container">
-                <h1>⚖️ 體重日記</h1>
-                <p style="text-align: center; color: #a69285; font-size: 13px; letter-spacing: 1px; margin-top: 0;">
-            BEAUTIFUL LIFE & HEALTH</p>
-                
-                <div class="target-box">
-                        <label for="targetWeight">🎯 目標體重：</label>
-                        <div>
-                                <input type="number" id="targetWeight" placeholder="例如: 75">
-                                <span style="font-weight: 500; margin-left: 5px;">kg</span>
-                            </div>
-                    </div>
+    <div class="container">
+        <h1>⚖️ 體重日記</h1>
+        <p style="text-align: center; color: #a69285; font-size: 13px; letter-spacing: 1px; margin-top: 0;">BEAUTIFUL
+            LIFE & HEALTH</p>
 
-                <label for="todayWeight">☕ 今日體重紀錄：</label>
-                <div style="position: relative; display: flex; align-items: center;">
-                        <input type="number" step="0.1" id="todayWeight" placeholder="0.0">
-                        <span style="position: absolute; right: 15px; top: 12px; font-weight: 500;">kg</span>
-                    </div>
-
-                <label for="todayFood">🥪 今日飲食日記 (自動識別台灣常見美食)：</label>
-                <input type="text" id="todayFood" placeholder="試試輸入：中午吃雞排，晚上吃滷肉飯配茶葉蛋">
-
-                <!-- 實時熱量偵測預覽區 -->
-                <div class="live-calorie-preview">
-                        <p style="margin: 0 0 5px 0; font-weight: 700; color: #8c7462;">🔍 智慧熱量偵測中：</p>
-                        <div id="detectedBadges" style="margin-bottom: 5px;"></div>
-                        
-                        <p style="margin: 5px 0 0 0;">預估今日攝取總熱量：<strong id="previewCalorieText"
-                    style="color: #b88e6f; font-size: 18px;">0</strong> 大卡</p>
-                        <p id="tdeeCompareText" style="font-size: 12px; color: #a69285; margin: 3px 0 0 0;"></p>
-
-                        <!-- 💡 核心優化：現場手動追加補救功能 -->
-                        <div id="manualFixBlock" class="manual-fix-box">
-                                <span style="font-size:12px; color:#a37b5d; font-weight:700;">💡
-                    偵測到未匹配的食物？在此手動補上熱量：</span>
-                                <div style="display:flex; gap: 8px; margin-top:5px;">
-                                        <input type="number" id="manualCalorieInput" placeholder="手動追加熱量(卡)"
-                        style="margin-bottom:0; padding:8px; font-size:13px;">
-                                    </div>
-                            </div>
-                    </div>
-
-                <button id="saveBtn" class="primary-btn">💾 存下今日體重與熱量</button>
-
-                <h3>🔥 TDEE 熱量計算機</h3>
-                <div class="tdee-box">
-                        <div class="gender-grid">
-                                <label><input type="radio" name="gender" value="M" checked> <span>👨 男性</span></label>
-                                <label><input type="radio" name="gender" value="F"> <span>👩 女性</span></label>
-                            </div>
-                        <div style="display: flex; gap: 10px;">
-                                <input type="number" id="tdeeAge" placeholder="年齡 (歲)">
-                                <input type="number" id="tdeeHeight" placeholder="身高 (cm)">
-                            </div>
-                        <input type="number" id="tdeeWeightInput" placeholder="目前體重 (kg) - 點擊帶入最新紀錄">
-                        <select id="tdeeActivity">
-                                <option value="1.2">🛋️ 久坐 (幾乎不運動)</option>
-                                <option value="1.375">🚶 輕度 (每週運動1-3天)</option>
-                                <option value="1.55">🏃 中度 (每週運動3-5天)</option>
-                                <option value="1.725">🏋️ 高度 (每週運動6-7天)</option>
-                                <option value="1.9">🔥 極度 (雙倍強訓勞力)</option>
-                            </select>
-                        <button id="calcTdeeBtn" class="primary-btn" style="background-color: #8c7462;">🧮
-                計算專屬熱量</button>
-                        
-                        <div id="tdeeResult" class="tdee-result-box">
-                                <p>🔹 基礎代謝 (BMR)：<strong id="bmrRes">0</strong> 大卡</p>
-                                <p>🔹 每日總消耗 (TDEE)：<strong id="tdeeRes">0</strong> 大卡</p>
-                               
-                <hr style="border: 0; border-top: 1px dashed #d9c8be; margin: 10px 0;">
-                                <p>💡 <strong>減脂建議：</strong>每日攝取約 <strong style="color:#d9534f;" id="cutRes">0</strong>
-                    大卡</p>
-                                <p>💪 <strong>增肌建議：</strong>每日攝取約 <strong style="color:#5cb85c;" id="bulkRes">0</strong>
-                    大卡</p>
-                           
+        <div class="target-box">
+            <label for="targetWeight">🎯 目標體重：</label>
+            <div>
+                <input type="number" id="targetWeight" placeholder="例如: 75">
+                <span style="font-weight: 500; margin-left: 5px;">kg</span>
             </div>
-                    </div>
+        </div>
 
-                <h3>📊 體重趨勢累計圖表</h3>
-                <div style="background: #faf6f3; padding: 10px; border-radius: 12px;">
-                        <canvas id="weightChart" width="400" height="260"></canvas>
-                    </div>
+        <label for="todayWeight">☕ 今日體重紀錄：</label>
+        <div style="position: relative; display: flex; align-items: center;">
+            <input type="number" step="0.1" id="todayWeight" placeholder="0.0">
+            <span style="position: absolute; right: 15px; top: 12px; font-weight: 500;">kg</span>
+        </div>
 
-                <h3>📜 歷史紀錄</h3>
-                <div id="historyList"></div>
-            </div>
+        <label for="todayFood">🥪 今日飲食日記 (自動識別台灣常見美食)：</label>
+        <input type="text" id="todayFood" placeholder="試試輸入：中午吃雞排，晚上吃滷肉飯配茶葉蛋">
 
-        <!-- 懸浮按鈕 -->
-        <button class="fab" id="fabBtn">🏆 看進度</button>
+        <div class="live-calorie-preview">
+            <p style="margin: 0 0 5px 0; font-weight: 700; color: #8c7462;">🔍 智慧熱量偵測中：</p>
+            <div id="detectedBadges" style="margin-bottom: 5px;"></div>
 
-        <!-- 懸浮進度彈窗 -->
-        <div class="modal-overlay" id="progressModal">
-                <div class="modal-content">
-                        <span class="modal-close" id="closeModal">&times;</span>
-                        <h2 style="color: #222; margin-top: 0;">進度報告 🚀</h2>
-                        <h1 id="progressPercent" style="color: #b88e6f; font-size: 40px; margin: 10px 0;">0%</h1>
-                        
-                        <div class="progress-bar-bg">
-                                <div class="progress-bar-fill" id="progressBarFill"></div>
-                            </div>
-                        
-                        <p id="progressKg" style="font-size: 18px; font-weight: 700; color: #5c4d43;"></p>
-                        <p id="progressQuote"
+            <p style="margin: 5px 0 0 0;">預估今日攝取總熱量：<strong id="previewCalorieText"
+                    style="color: #b88e6f; font-size: 18px;">0</strong> 大卡</p>
+            <p id="tdeeCompareText" style="font-size: 12px; color: #a69285; margin: 3px 0 0 0;"></p>
+
+            <div id="manualFixBlock" class="manual-fix-box">
+                <span style="font-size:12px; color:#a37b5d; font-weight:700;">💡 偵測到未匹配的食物？在此手動補上熱量：</span>
+                <div style="display:flex; gap: 8px; margin-top:5px;">
+                    <input type="number" id="manualCalorieInput" placeholder="手動追加熱量(卡)"
+                        style="margin-bottom:0; padding:8px; font-size:13px;">
+                </div>
+            </div>
+        </div>
+
+        <button id="saveBtn" class="primary-btn">💾 存下今日體重與熱量</button>
+
+        <h3>🔥 TDEE 熱量計算機</h3>
+        <div class="tdee-box">
+            <div class="gender-grid">
+                <label><input type="radio" name="gender" value="M" checked> <span>👨 男性</span></label>
+                <label><input type="radio" name="gender" value="F"> <span>👩 女性</span></label>
+            </div>
+            <div style="display: flex; gap: 10px;">
+                <input type="number" id="tdeeAge" placeholder="年齡 (歲)">
+                <input type="number" id="tdeeHeight" placeholder="身高 (cm)">
+            </div>
+            <input type="number" id="tdeeWeightInput" placeholder="目前體重 (kg) - 點擊帶入最新紀錄">
+            <select id="tdeeActivity">
+                <option value="1.2">🛋️ 久坐 (幾乎不運動)</option>
+                <option value="1.375">🚶 輕度 (每週運動1-3天)</option>
+                <option value="1.55">🏃 中度 (每週運動3-5天)</option>
+                <option value="1.725">🏋️ 高度 (每週運動6-7天)</option>
+                <option value="1.9">🔥 極度 (雙倍強訓勞力)</option>
+            </select>
+            <button id="calcTdeeBtn" class="primary-btn" style="background-color: #8c7462;">🧮 計算專屬熱量</button>
+
+            <div id="tdeeResult" class="tdee-result-box">
+                <p>🔹 基礎代謝 (BMR)：<strong id="bmrRes">0</strong> 大卡</p>
+                <p>🔹 每日總消耗 (TDEE)：<strong id="tdeeRes">0</strong> 大卡</p>
+                <hr style="border: 0; border-top: 1px dashed #d9c8be; margin: 10px 0;">
+                <p>💡 <strong>減脂建議：</strong>每日攝取約 <strong style="color:#d9534f;" id="cutRes">0</strong> 大卡</p>
+                <p>💪 <strong>增肌建議：</strong>每日攝取約 <strong style="color:#5cb85c;" id="bulkRes">0</strong> 大卡</p>
+            </div>
+        </div>
+
+        <h3>📊 體重趨勢累計圖表</h3>
+        <div style="background: #faf6f3; padding: 10px; border-radius: 12px;">
+            <canvas id="weightChart" width="400" height="260"></canvas>
+        </div>
+
+        <h3>📜 歷史紀錄</h3>
+        <div id="historyList"></div>
+    </div>
+
+    <button class="fab" id="fabBtn">🏆 看進度</button>
+
+    <div class="modal-overlay" id="progressModal">
+        <div class="modal-content">
+            <span class="modal-close" id="closeModal">&times;</span>
+            <h2 style="color: #222; margin-top: 0;">進度報告 🚀</h2>
+            <h1 id="progressPercent" style="color: #b88e6f; font-size: 40px; margin: 10px 0;">0%</h1>
+
+            <div class="progress-bar-bg">
+                <div class="progress-bar-fill" id="progressBarFill"></div>
+            </div>
+
+            <p id="progressKg" style="font-size: 18px; font-weight: 700; color: #5c4d43;"></p>
+            <p id="progressQuote"
                 style="font-size: 14px; color: #8c7462; line-height: 1.5; margin-top: 15px; padding: 10px; background: #faf6f3; border-radius: 10px;">
             </p>
-                    </div>
-            </div>
+        </div>
+    </div>
 
-       
     <script>
         let myChart = null;
         let baseDetectedCalorie = 0;
         let manualAddedCalorie = 0;
 
-        // 🎯 台灣常見爆量美食字典大升級！
         const calorieDictionary = [
             { keywords: ["雞排", "炸雞排"], calorie: 650, label: "炸雞排(一片) 650卡" },
             { keywords: ["滷肉飯", "魯肉飯"], calorie: 450, label: "滷肉飯(一碗) 450卡" },
@@ -464,14 +438,11 @@
         window.onload = function () {
             const savedTarget = localStorage.getItem('targetWeight');
             if (savedTarget) { document.getElementById('targetWeight').value = savedTarget; }
-
             const savedTdee = localStorage.getItem('myTdeeValue');
             if (savedTdee) { document.getElementById('tdeeRes').innerText = savedTdee; }
-
             updateDashboard();
         };
 
-        // 🧠 實時監聽飲食日記輸入框
         document.getElementById('todayFood').addEventListener('input', function () {
             const inputText = this.value;
             const badgesDiv = document.getElementById('detectedBadges');
@@ -482,21 +453,16 @@
             let detectedItems = [];
 
             if (inputText.trim() !== "") {
-                // 顯示手動修正欄位給老闆自由發揮
                 manualFixBlock.style.display = 'block';
-
-                // 比對字典
                 calorieDictionary.forEach(item => {
                     let matchCount = 0;
                     item.keywords.forEach(keyword => {
                         if (keyword && inputText.includes(keyword)) {
-                            // 計算出現次數
                             const regex = new RegExp(keyword, 'g');
                             const matches = inputText.match(regex);
                             if (matches) matchCount = matches.length;
                         }
                     });
-
                     if (matchCount > 0) {
                         totalCal += (item.calorie * matchCount);
                         detectedItems.push(`${item.label} x${matchCount}`);
@@ -509,8 +475,6 @@
             }
 
             baseDetectedCalorie = totalCal;
-
-            // 渲染標籤
             detectedItems.forEach(itemLabel => {
                 const span = document.createElement('span');
                 span.className = 'keyword-badge';
@@ -521,22 +485,17 @@
             if (detectedItems.length === 0 && inputText.trim() !== "") {
                 badgesDiv.innerHTML = `<span style="color:#a69285; font-size:12px;">(未偵測到內建食物，請在下方手動輸入熱量)</span>`;
             }
-
             calculateGrandTotal();
         });
 
-        // 監聽手動追加的熱量數值
         document.getElementById('manualCalorieInput').addEventListener('input', function () {
             manualAddedCalorie = parseFloat(this.value) || 0;
             calculateGrandTotal();
         });
 
-        // 計算並顯示最終加總
         function calculateGrandTotal() {
             const finalTotal = baseDetectedCalorie + manualAddedCalorie;
             document.getElementById('previewCalorieText').innerText = finalTotal;
-
-            // 與 TDEE 對比
             const tdeeVal = parseInt(document.getElementById('tdeeRes').innerText) || 0;
             if (tdeeVal > 0) {
                 const remain = tdeeVal - finalTotal;
@@ -548,7 +507,6 @@
             }
         }
 
-        // 儲存今日資料
         document.getElementById('saveBtn').addEventListener('click', function () {
             const targetWeight = document.getElementById('targetWeight').value;
             const todayWeight = document.getElementById('todayWeight').value;
@@ -558,7 +516,6 @@
             if (!todayWeight) { alert('老闆，記得填寫體重喔！'); return; }
 
             const todayDate = new Date().toLocaleDateString();
-
             const dailyData = {
                 weight: parseFloat(todayWeight),
                 food: todayFood,
@@ -576,7 +533,6 @@
             localStorage.setItem('weightHistoryLog', JSON.stringify(historyLog));
             alert('🎉 成功鎖進保險箱！今日飲食與總熱量皆已完美存檔！');
 
-            // 重置所有欄位
             document.getElementById('todayWeight').value = '';
             document.getElementById('todayFood').value = '';
             document.getElementById('manualCalorieInput').value = '';
@@ -586,11 +542,9 @@
             document.getElementById('manualFixBlock').style.display = 'none';
             baseDetectedCalorie = 0;
             manualAddedCalorie = 0;
-
             updateDashboard();
         });
 
-        // 點擊帶入體重
         document.getElementById('tdeeWeightInput').addEventListener('click', function () {
             let historyLog = JSON.parse(localStorage.getItem('weightHistoryLog')) || [];
             if (historyLog.length > 0 && !this.value) {
@@ -599,7 +553,6 @@
             }
         });
 
-        // TDEE 計算
         document.getElementById('calcTdeeBtn').addEventListener('click', function () {
             const gender = document.querySelector('input[name="gender"]:checked').value;
             const age = parseFloat(document.getElementById('tdeeAge').value);
@@ -620,11 +573,9 @@
 
             localStorage.setItem('myTdeeValue', tdee);
             document.getElementById('tdeeResult').style.display = 'block';
-
             document.getElementById('todayFood').dispatchEvent(new Event('input'));
         });
 
-        // 懸浮進度報告
         const fabBtn = document.getElementById('fabBtn');
         const modal = document.getElementById('progressModal');
         const closeModal = document.getElementById('closeModal');
@@ -641,7 +592,6 @@
             historyLog.sort((a, b) => new Date(a.date) - new Date(b.date));
             const startWeight = historyLog[0].weight;
             const currentWeight = historyLog[historyLog.length - 1].weight;
-
             const totalToLose = startWeight - targetWeight;
             const currentLost = startWeight - currentWeight;
             const remaining = currentWeight - targetWeight;
@@ -679,16 +629,15 @@
 
             const historyListDiv = document.getElementById('historyList');
             historyListDiv.innerHTML = '';
-
             [...historyLog].reverse().forEach(item => {
                 const itemDiv = document.createElement('div');
                 itemDiv.className = 'history-item';
                 itemDiv.innerHTML = `
-                    <span style="color:#a69285; font-weight:700;">📅 ${item.date}</span><br>
-                    <span style="display:inline-block; margin-top:5px;">⚖️ 體重：<strong>${item.weight} kg</strong></span><br>
-                    <span style="color:#7a6253;">🍎 飲食：${item.food || '未紀錄'}</span><br>
-                    <span style="color:#b88e6f; font-weight:700;">🔥 今日熱量：${item.calories || 0} kcal</span>
-                `;
+                    <span style="color:#a69285; font-weight:700;">📅 ${item.date}</span><br>
+                    <span style="display:inline-block; margin-top:5px;">⚖️ 體重：<strong>${item.weight} kg</strong></span><br>
+                    <span style="color:#7a6253;">🍎 飲食：${item.food || '未紀錄'}</span><br>
+                    <span style="color:#b88e6f; font-weight:700;">🔥 今日熱量：${item.calories || 0} kcal</span>
+                `;
                 historyListDiv.appendChild(itemDiv);
             });
 
